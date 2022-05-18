@@ -151,5 +151,30 @@ describe("Vote.doVote", () => {
                     expect(error.message).to.contain("Voting: you already has voted");
                 });
         });
+
+        it("Should work correctly", async () => {
+            const testCasesAmount = 10
+
+            const participants = (await ethers.getSigners()).slice(5, 5 + testCasesAmount);
+            let expectedVotingResult = new Array(candidates.length).fill(0);
+
+            for (const participant of participants) {
+                const candiateID = getRandInt(0, candidates.length);
+                const candiateAddress = candidates[candiateID];
+
+                const tx = await voting.connect(participant).doVoteByAddress(0, candiateAddress, {value: votingFee});
+                await expect(tx)
+                    .to.changeEtherBalances([participant, voting], [BigNumber.from(0).sub(votingFee), votingFee]);
+
+                expectedVotingResult[candiateID]++;
+            }
+
+            const vote = await voting.getVote(0);
+
+            expect(vote.pool).to.eq(votingFee.mul(testCasesAmount));
+            for(let i = 0; i < vote.candidates.length; i++) {
+                expect(vote.candidates[i].voteOf).to.eq(expectedVotingResult[i]);
+            }
+        });
     });
 });
