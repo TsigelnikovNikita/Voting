@@ -141,7 +141,7 @@ contract Voting is Ownable {
                 return i;
             }
         }
-        revert("Voting: no such candidate");
+        revert("Voting: candidate with such address doesn't exists");
     }
 
     /**
@@ -152,7 +152,7 @@ contract Voting is Ownable {
      *
      */
     function doVoteByID(uint voteID, uint candidateID)
-        external
+        public
         payable
         voteIsExist(voteID)
     {
