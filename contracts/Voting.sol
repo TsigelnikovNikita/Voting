@@ -5,7 +5,7 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Voting is Ownable {
-    // Minimal vote fee of participant for vote
+    // Voting fee of participant for vote
     uint constant public VOTING_FEE = 0.01 ether;
 
     // Duration of every vote is three days since vote creating
@@ -185,7 +185,7 @@ contract Voting is Ownable {
         payable
         voteIsExist(voteID)
     {
-        require(msg.value >= VOTING_FEE, "Voting: voting fee isn't enough");
+        require(msg.value == VOTING_FEE, "Voting: voting fee should be equal to 0.01 ether");
 
         Vote storage vote = votes[voteID];
 
