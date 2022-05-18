@@ -30,6 +30,14 @@ contract Voting is Ownable {
 
     Vote[] public votes;
 
+    /*
+        events
+    */
+    event VoteIsCreated(uint indexed voteID, string voteName, uint64 endTime);
+
+    /*
+        functions
+    */
     function createVote(
         string calldata voteName,
         string calldata voteDescription,
@@ -47,6 +55,8 @@ contract Voting is Ownable {
         vote.description = voteDescription;
         vote.endTime = uint64(block.timestamp + VOTE_DURATION);
         vote.candidates = candidateAddrs;
+
+        emit VoteIsCreated(votes.length - 1, voteName, vote.endTime);
     }
 
     function getVote(uint voteID)

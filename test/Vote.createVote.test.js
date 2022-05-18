@@ -65,8 +65,11 @@ describe("Vote.createVote", () => {
         const voteDescription = "voteDescription";
 
         const tx = await voting.createVote(voteName, voteDescription, candidates);
-
         const vote = await voting.getVote(0);
+
+        await expect(tx)
+            .to.emit(voting, "VoteIsCreated")
+            .withArgs(0, voteName, await getBlockTimestamp(tx.blockNumber) + VOTE_DURATION);
 
         for (i = 0; i < candidates.length; i++) {
             expect(vote.candidates[i].addr).to.eq(candidates[i]);
