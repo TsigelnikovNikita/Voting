@@ -25,11 +25,12 @@ contract Voting is Ownable {
 
     struct Vote {
         Candidate[] candidates;
-        mapping(address => uint) indexOfCandidates;
+        mapping(address => uint) candidateIndexes;
         string name;
         string description;
-        uint pool;
-        uint endTime;
+        uint128 pool;
+        uint64 endTime;
+        uint64 currentWinner;
         bool isEnded;
         address[] participants;
         mapping(address => bool) alreadyVoted;
@@ -102,7 +103,7 @@ contract Voting is Ownable {
             address candidates = candidateAddrs[i];
 
             vote.candidates.push(Candidate(candidates, 0));
-            vote.indexOfCandidates[candidates] = i;
+            vote.candidateIndexes[candidates] = i;
             unchecked { ++i; }
         }
 
@@ -165,7 +166,7 @@ contract Voting is Ownable {
 
         require(vote.endTime >= block.timestamp, "Voting: voting time is over");
         require(!vote.alreadyVoted[msg.sender], "Voting: you already has voted");
-        uint candidateIndex = vote.indexOfCandidates[candidate];
+        uint candidateIndex = vote.candidateIndexes[candidate];
         if (candidateIndex == 0) {
             require(vote.candidates[0].addr == candidate, "Voting: candidate with such address doesn't exists");
         }
@@ -175,5 +176,9 @@ contract Voting is Ownable {
 
         vote.alreadyVoted[msg.sender] = true;
         vote.participants.push(msg.sender);
+
+        if (vote.candidates[candidateIndex].voteOf > vote.candidates[vote.currentWinner].voteOf) {
+            vote.currentWinner = candidateIndex;
+        }
     }
 }
