@@ -22,7 +22,7 @@ describe("Vote.getter functions", () => {
     });
 
     describe("Vote.getVote", () => {
-        it("getVote() should throw an exception if vote with such ID doesn't exists", async () => {
+        it("Should throw an exception if vote with such ID doesn't exists", async () => {
             await expect(voting.getVote(1))
                 .to.be.rejectedWith(Error)
                 .then((error) => {
@@ -32,7 +32,7 @@ describe("Vote.getter functions", () => {
     });
 
     describe("Vote.getCandidateID", () => {
-        it("getCandidateID() should throw an exception if vote with such ID doesn't exists", async () => {
+        it("Should throw an exception if vote with such ID doesn't exists", async () => {
 
             await expect(voting.getCandidateID(1, candidates[0]))
                 .to.be.rejectedWith(Error)
@@ -41,7 +41,7 @@ describe("Vote.getter functions", () => {
                 });
         });
 
-        it("getCandidateID() should throw an exception if candidate with such address doesn't exists", async () => {
+        it("Should throw an exception if candidate with such address doesn't exists", async () => {
             await voting.createVote("VoteName", "voteDescription", candidates);
 
             await expect(voting.getCandidateID(0, ethers.constants.AddressZero))

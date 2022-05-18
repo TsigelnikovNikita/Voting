@@ -28,7 +28,7 @@ describe("Vote.createVote", () => {
         await voting.deployed();
     });
 
-    it("createVote() should throw an exception if not owner is trying to create a vote", async () => {
+    it("Should throw an exception if not owner is trying to create a vote", async () => {
         await expect(voting.connect(participant).createVote("VoteName", "voteDescription", [ethers.constants.AddressZero]))
             .to.be.rejectedWith(Error)
             .then((error) => {
@@ -36,7 +36,7 @@ describe("Vote.createVote", () => {
             });
     });
 
-    it("createVote() should throw an exception if amount of candidates less than 2", async () => {
+    it("Should throw an exception if amount of candidates less than 2", async () => {
         await expect(voting.connect(votingOwner).createVote("VoteName", "voteDescription", [ethers.constants.AddressZero]))
             .to.be.rejectedWith(Error)
             .then((error) => {
@@ -44,7 +44,7 @@ describe("Vote.createVote", () => {
             });
     });
 
-    it("createVote() should throw an exception if voteName is empty", async () => {
+    it("Should throw an exception if voteName is empty", async () => {
         await expect(voting.connect(votingOwner).createVote("", "voteDescription", [ethers.constants.AddressZero, ethers.constants.AddressZero]))
             .to.be.rejectedWith(Error)
             .then((error) => {
@@ -52,7 +52,7 @@ describe("Vote.createVote", () => {
             });
     });
 
-    it("createVote() should throw an exception if voteDescription is empty", async () => {
+    it("Should throw an exception if voteDescription is empty", async () => {
         await expect(voting.connect(votingOwner).createVote("VoteName", "", [ethers.constants.AddressZero, ethers.constants.AddressZero]))
             .to.be.rejectedWith(Error)
             .then((error) => {
@@ -60,7 +60,7 @@ describe("Vote.createVote", () => {
             });
     });
 
-    it("createVote() should create votes correctly", async () => {
+    it("Should create votes correctly", async () => {
         const votesAmount = 5;
 
         for (j = 0; j < votesAmount; j++) {
