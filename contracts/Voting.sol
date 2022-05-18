@@ -5,11 +5,17 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Voting is Ownable {
+    // Minimal vote fee of participant for vote
     uint constant public VOTING_FEE = 0.01 ether;
+
+    // Duration of every vote is three days since vote creating
     uint32 constant public VOTE_DURATION = 3 days;
+
+    // Fee from each vote pool that owner gets
     uint8 constant public FEE = 10; // 10%
 
-    // amount of vee that owner can withdraw
+    // Amount of available ether that owner can withdraw.
+    // Owner gets fee from vote only at the end of vote.
     uint availableEtherForWithdraw;
 
     struct Candidate {
@@ -28,6 +34,7 @@ contract Voting is Ownable {
     }
 
     Vote[] public votes;
+
 
     /*
         MODIFIERS
@@ -55,11 +62,11 @@ contract Voting is Ownable {
     /**
      * @dev Creates a new vote with `voteName` as name, `voteDeiscription` as
      * description and `candidateAddres` as list of candidates. end time of
-     * vote is equal to current timestamp plus three days. 
+     * vote is equal to the current timestamp plus three days. 
      *
      * Requirements:
-     * - `voteName` and `voteDescription` can't be an empty
-     * - `candidateAddres` size must beat least 2. 
+     * - `voteName` and `voteDescription` can't be an empty;
+     * - `candidateAddres` size must beat least 2;
      *
      * IMPORTANT: the function doesn't check uniqueness of the voteName and
      * candidate addresses. It allows to create two votes with the same voteName.
@@ -102,7 +109,7 @@ contract Voting is Ownable {
     /**
      * @dev Returns information about the vote by voteID.
      * The function returns:
-     *  - list of candidates (please chech the Candidate struct)
+     *  - list of candidates
      *  - name of vote
      *  - description of vote
      *  - current pool of vote
@@ -110,7 +117,7 @@ contract Voting is Ownable {
      *  - status of vote (is ended or not)
      *
      * Requirements:
-     * - vote with `voteID` should be exists.
+     * - vote with `voteID` should be exists;
      *
      */
     function getVote(uint voteID)
@@ -131,6 +138,15 @@ contract Voting is Ownable {
                 vote.pool, vote.endTime, vote.isEnded);
     }
 
+    /**
+     * @dev Returns id of candidate in the vote with voteID. It may be useful
+     * if you want to call {doVoteByID} function instead of {doVoteByAddress},
+     * because of {doVoteByID} function is more cheaper.
+     *
+     * Requirements:
+     * - vote with `voteID` should be exists;
+     * - candidate with `candadiateAddr` should be exists;
+     */
     function getCandidateID(uint voteID, address candadiateAddr)
         public
         view
@@ -149,11 +165,18 @@ contract Voting is Ownable {
     }
 
     /**
-     * @dev Returns information about the vote by voteID.
+     * @dev Allows to vote for candidate by candidateID. For getting candidateID
+     * by address just call {getCandidateID} function. 
      *
      * Requirements:
-     * - vote with `voteID` should be exists.
+     * - vote with `voteID` should be exists;
+     * - candidate with `candidateID` should be exists;
+     * - msg.value must be equal to or greater then {VOTING_FEE};
+     * - vote should be an active;
+     * - participant (msg.sender) can't vote twice;
      *
+     * NOTE: it's strongly recomended use {doVoteByID} function for vote instead
+     * of {doVoteByAddress} bacause it will be more cheaper!
      */
     function doVoteByID(uint voteID, uint candidateID)
         public
@@ -165,9 +188,9 @@ contract Voting is Ownable {
         Vote storage vote = votes[voteID];
 
         require(vote.endTime >= block.timestamp, "Voting: voting time is over");
-        require(vote.alreadyVoted[msg.sender] != true, "Voting: you already has voted");
+        require(!vote.alreadyVoted[msg.sender], "Voting: you already has voted");
         require(candidateID < vote.candidates.length,
-                "Voting: candidate with such ID doesn't exists");
+                                "Voting: candidate with such ID doesn't exists");
 
         vote.alreadyVoted[msg.sender] = true;
         vote.pool += msg.value;
@@ -185,6 +208,18 @@ contract Voting is Ownable {
         // }
     }
 
+    /**
+     * @dev Allows to vote for candidate by candidateAddress. Actually this function
+     * just call {getCandidateID} and {doVoteByID} then. Be careful! View function isn't free
+     * inside transaction.
+     *
+     * Requirements:
+     * - candidate with `candidateAddr` should be exists;
+     * - please check {doVoteByID} function for more information.
+     *
+     * NOTE: it's strongly recomended use {doVoteByID} function for vote instead
+     * of {doVoteByAddress} bacause it will be more cheaper!
+     */
     function doVoteByAddress(uint voteID, address candidateAddr)
         external
         payable
