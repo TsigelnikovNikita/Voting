@@ -5,12 +5,12 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Voting is Ownable {
+    uint constant public VOTING_FEE = 0.01 ether;
     uint32 constant public VOTE_DURATION = 3 days;
-
     uint8 constant public FEE = 10; // 10%
 
     // amount of vee that owner can withdraw
-    uint availableFee;
+    uint availableEtherForWithdraw;
 
     struct Candidate {
         address addr;
@@ -47,6 +47,7 @@ contract Voting is Ownable {
      * @dev Emitted when new vote is created by {createVote} function.
      */
     event VoteIsCreated(uint indexed voteID, string voteName, uint64 endTime);
+
 
     /*
         FUNCTIONS
@@ -116,7 +117,7 @@ contract Voting is Ownable {
             uint pool,
             uint64 endTime,
             bool isEnded)
-        {    
+    {    
         Vote storage vote = votes[voteID];
         candidates = new Candidate[](vote.candidates.length);
 
@@ -129,5 +130,28 @@ contract Voting is Ownable {
 
         return (candidates, vote.name, vote.description,
                 vote.pool, vote.endTime, vote.isEnded);
+    }
+
+    /**
+     * @dev Returns information about the vote by voteID.
+     *
+     * Requirements:
+     * - vote with `voteID` should be exists.
+     *
+     */
+    function doVote(uint voteID, address candidate)
+        external
+        payable
+        voteIsExist(voteID)
+    {
+        require(msg.value >= VOTING_FEE, "Voting: voting fee isn't enough");
+
+        Vote storage vote = votes[voteID];
+        require(vote.endTime >= uint64(block.timestamp), "Voting: voting time is over");
+        require(vote.alreadyVoted[msg.sender] != true, "Voting: you already has voted");
+
+        vote.alreadyVoted[msg.sender] = true;
+        vote.pool += msg.value;
+        ++vote.voteOf[candidate];
     }
 }
