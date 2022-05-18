@@ -101,6 +101,9 @@ describe("Vote.doVote", () => {
             for(let i = 0; i < vote.candidates.length; i++) {
                 expect(vote.candidates[i].voteOf).to.eq(expectedVotingResult[i]);
             }
+            for(let i = 0; i < vote.participants.length; i++) {
+                expect(vote.participants[i]).to.eq(participants[i].address);
+            }
         });
     });
 

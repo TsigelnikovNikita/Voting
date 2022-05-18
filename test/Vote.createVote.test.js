@@ -79,6 +79,7 @@ describe("Vote.createVote", () => {
                 expect(vote.candidates[i].voteOf).to.eq(0);
             }
 
+            expect(vote.participants).to.empty;
             expect(vote.name).to.eq(voteName);
             expect(vote.description).to.eq(voteDescription);
             expect(vote.pool).to.eq(0);

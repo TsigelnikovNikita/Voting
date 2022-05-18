@@ -30,6 +30,7 @@ contract Voting is Ownable {
         uint pool;
         uint endTime;
         bool isEnded;
+        address[] participants;
         mapping(address => bool) alreadyVoted;
     }
 
@@ -126,6 +127,7 @@ contract Voting is Ownable {
         voteIsExist(voteID)
         returns(
             Candidate[] memory candidates,
+            address[] memory participants,
             string memory name,
             string memory description,
             uint pool,
@@ -134,8 +136,8 @@ contract Voting is Ownable {
     {    
         Vote storage vote = votes[voteID];
 
-        return (vote.candidates, vote.name, vote.description,
-                vote.pool, vote.endTime, vote.isEnded);
+        return (vote.candidates, vote.participants, vote.name,
+                vote.description, vote.pool, vote.endTime, vote.isEnded);
     }
 
     /**
@@ -195,17 +197,7 @@ contract Voting is Ownable {
         vote.alreadyVoted[msg.sender] = true;
         vote.pool += msg.value;
         ++vote.candidates[candidateID].voteOf;
-
-        // Current winner is always on the first place in the array of candidates.
-        // So we can to avoid loop when we will choose winner of vote.
-
-        // TODO: TEMPORARY REMOVED. NEED TO CHECK GAS ESTIMATION
-        // if (vote.candidates[candidateID].addr != vote.candidates[0].addr && 
-        //     vote.candidates[candidateID].voteOf > vote.candidates[0].voteOf) {
-        //     Candidate memory newCurrentWinner = vote.candidates[candidateID];
-        //     vote.candidates[candidateID] = vote.candidates[0]; 
-        //     vote.candidates[0] = newCurrentWinner; 
-        // }
+        vote.participants.push(msg.sender);
     }
 
     /**
