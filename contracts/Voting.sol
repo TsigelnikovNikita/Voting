@@ -31,13 +31,41 @@ contract Voting is Ownable {
     Vote[] public votes;
 
     /*
-        events
+        MODIFIERS
     */
+    modifier voteIsExist(uint voteID) {
+        require(voteID < votes.length, "Voting: vote with such ID doesn't exists");
+        _;
+    }
+
+
+    /*
+        EVENTS
+    */
+
+    /**
+     * @dev Emitted when new vote is created by {createVote} function.
+     */
     event VoteIsCreated(uint indexed voteID, string voteName, uint64 endTime);
 
     /*
-        functions
+        FUNCTIONS
     */
+
+    /**
+     * @dev Creates a new vote with `voteName` as name, `voteDeiscription` as
+     * description and `candidateAddres` as list of candidates. end time of
+     * vote is equal to current timestamp plus three days. 
+     *
+     * Requirements:
+     * - `voteName` and `voteDescription` can't be an empty
+     * - `candidateAddres` size must beat least 2. 
+     *
+     * IMPORTANT: the function doesn't check uniqueness of the voteName. It allows
+     * to create two votes with the same voteName. Keep this in mind. 
+     *
+     * Emit an {VoteIsCreated} event.
+     */
     function createVote(
         string calldata voteName,
         string calldata voteDescription,
@@ -46,9 +74,13 @@ contract Voting is Ownable {
         external
         onlyOwner
     {
-        require(candidateAddrs.length >= 2, "Voting: amount of candidates must be at least 2");
-        require(bytes(voteName).length > 0, "Voting: voteName can't be an empty");
-        require(bytes(voteDescription).length > 0, "Voting: voteDescription can't be an empty");
+        require(candidateAddrs.length >= 2,
+                "Voting: amount of candidates must be at least 2");
+        require(bytes(voteName).length > 0,
+                "Voting: voteName can't be an empty");
+        require(bytes(voteDescription).length > 0,
+                "Voting: voteDescription can't be an empty");
+
         Vote storage vote = votes.push();
 
         vote.name = voteName;
@@ -59,16 +91,32 @@ contract Voting is Ownable {
         emit VoteIsCreated(votes.length - 1, voteName, vote.endTime);
     }
 
+    /**
+     * @dev Returns information about the vote by voteID.
+     * The function returns:
+     *  - list of candidates (please chech the Candidate struct)
+     *  - name of vote
+     *  - description of vote
+     *  - current pool of vote
+     *  - current end time of vote
+     *  - status of vote (is ended or not)
+     *
+     * Requirements:
+     * - vote with `voteID` should be exists.
+     *
+     */
     function getVote(uint voteID)
         external
         view
+        voteIsExist(voteID)
         returns(
             Candidate[] memory candidates,
             string memory name,
             string memory description,
             uint pool,
             uint64 endTime,
-            bool isEnded) {
+            bool isEnded)
+        {    
         Vote storage vote = votes[voteID];
         candidates = new Candidate[](vote.candidates.length);
 
@@ -79,6 +127,7 @@ contract Voting is Ownable {
             });
         }
 
-        return (candidates, vote.name, vote.description, vote.pool, vote.endTime, vote.isEnded);
+        return (candidates, vote.name, vote.description,
+                vote.pool, vote.endTime, vote.isEnded);
     }
 }
