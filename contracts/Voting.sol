@@ -22,7 +22,7 @@ contract Voting is Ownable {
         string name;
         string description;
         uint pool;
-        uint64 endTime;
+        uint endTime;
         bool isEnded;
         mapping(address => bool) alreadyVoted;
     }
@@ -45,7 +45,7 @@ contract Voting is Ownable {
     /**
      * @dev Emitted when new vote is created by {createVote} function.
      */
-    event VoteIsCreated(uint indexed voteID, string voteName, uint64 endTime);
+    event VoteIsCreated(uint indexed voteID, string voteName, uint endTime);
 
 
     /*
@@ -87,7 +87,7 @@ contract Voting is Ownable {
 
         vote.name = voteName;
         vote.description = voteDescription;
-        vote.endTime = uint64(block.timestamp + VOTE_DURATION);
+        vote.endTime = block.timestamp + VOTE_DURATION;
 
         for (uint i = 0; i < candidateAddrs.length;) {
             vote.candidates.push(Candidate(
@@ -122,7 +122,7 @@ contract Voting is Ownable {
             string memory name,
             string memory description,
             uint pool,
-            uint64 endTime,
+            uint endTime,
             bool isEnded)
     {    
         Vote storage vote = votes[voteID];
@@ -164,7 +164,7 @@ contract Voting is Ownable {
 
         Vote storage vote = votes[voteID];
 
-        require(vote.endTime >= uint64(block.timestamp), "Voting: voting time is over");
+        require(vote.endTime >= block.timestamp, "Voting: voting time is over");
         require(vote.alreadyVoted[msg.sender] != true, "Voting: you already has voted");
         require(candidateID < vote.candidates.length,
                 "Voting: candidate with such ID doesn't exists");
