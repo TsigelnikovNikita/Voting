@@ -57,6 +57,11 @@ contract Voting is Ownable {
      */
     event VoteIsCreated(uint indexed voteID, string voteName, uint endTime);
 
+    /**
+     * @dev Emitted when th vote is ended by {endVote} function.
+     */
+    event VoteIsEnded(uint indexed voteID, address winner, uint winning);
+
 
     /*
         FUNCTIONS
@@ -156,7 +161,7 @@ contract Voting is Ownable {
      *
      */
     function doVote(uint voteID, address candidate)
-        public
+        external
         payable
         voteIsExist(voteID)
     {
@@ -184,5 +189,27 @@ contract Voting is Ownable {
         {
             vote.currentWinner = candidateIndex;
         }
+    }
+
+    function endVote(uint voteID)
+        external
+        voteIsExist(voteID)
+    {
+        Vote storage vote = votes[voteID];
+
+        require(vote.endTime < block.timestamp, "Voting: vote is still in the proccessing");
+        require(!vote.isEnded, "Voting: vote is already ended");
+
+        vote.isEnded = true;
+
+        // The winner gets 90% of vote pool.
+        uint winning = vote.pool * 90 / 100;
+
+        // 10% stays on the smart-contract.
+        availableEtherForWithdraw += vote.pool - winning;
+
+        payable(vote.candidates[vote.currentWinner].addr).transfer(winning);
+
+        emit VoteIsEnded(voteID, vote.candidates[vote.currentWinner].addr, winning);
     }
 }
