@@ -197,7 +197,8 @@ contract Voting is Ownable {
     {
         Vote storage vote = votes[voteID];
 
-        require(vote.endTime < block.timestamp, "Voting: vote is still in the proccessing");
+        require(vote.endTime < block.timestamp,
+                                        "Voting: vote is still in the proccessing");
         require(!vote.isEnded, "Voting: vote is already ended");
 
         vote.isEnded = true;
@@ -211,5 +212,20 @@ contract Voting is Ownable {
         payable(vote.candidates[vote.currentWinner].addr).transfer(winning);
 
         emit VoteIsEnded(voteID, vote.candidates[vote.currentWinner].addr, winning);
+    }
+
+    function withdrawAvailableFee(uint amount)
+        external
+        onlyOwner
+    {
+        amount = amount == 0 ? availableEtherForWithdraw : amount;
+        require(amount <= availableEtherForWithdraw,
+                "Voting: you don't have such amount of available fee for withdraw");
+        availableEtherForWithdraw -= amount;
+        payable(msg.sender).transfer(amount);
+    }
+
+    receive() external payable {
+        availableEtherForWithdraw += msg.value;
     }
 }
