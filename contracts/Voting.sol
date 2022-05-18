@@ -18,8 +18,7 @@ contract Voting is Ownable {
     }
 
     struct Vote {
-        address[] candidates;
-        mapping (address => uint32) voteOf;
+        Candidate[] candidates;
         string name;
         string description;
         uint pool;
@@ -87,7 +86,12 @@ contract Voting is Ownable {
         vote.name = voteName;
         vote.description = voteDescription;
         vote.endTime = uint64(block.timestamp + VOTE_DURATION);
-        vote.candidates = candidateAddrs;
+
+        for (uint i = 0; i < candidateAddrs.length; i++) {
+            vote.candidates.push(Candidate(
+                candidateAddrs[i], 0
+            ));
+        }
 
         emit VoteIsCreated(votes.length - 1, voteName, vote.endTime);
     }
@@ -119,17 +123,25 @@ contract Voting is Ownable {
             bool isEnded)
     {    
         Vote storage vote = votes[voteID];
-        candidates = new Candidate[](vote.candidates.length);
+
+        return (vote.candidates, vote.name, vote.description,
+                vote.pool, vote.endTime, vote.isEnded);
+    }
+
+    function getCandidateID(uint voteID, address candadiateAddr)
+        public
+        view
+        voteIsExist(voteID)
+        returns(uint)
+    {
+        Vote storage vote = votes[voteID];
 
         for (uint i = 0; i < vote.candidates.length; i++) {
-            candidates[i] = Candidate({
-                addr: vote.candidates[i],
-                voteOf: vote.voteOf[vote.candidates[i]]
-            });
+            if (candadiateAddr == vote.candidates[i].addr) {
+                return i;
+            }
         }
-
-        return (candidates, vote.name, vote.description,
-                vote.pool, vote.endTime, vote.isEnded);
+        revert("Voting: no such candidate");
     }
 
     /**
@@ -139,7 +151,7 @@ contract Voting is Ownable {
      * - vote with `voteID` should be exists.
      *
      */
-    function doVote(uint voteID, address candidate)
+    function doVoteByID(uint voteID, uint candidateID)
         external
         payable
         voteIsExist(voteID)
@@ -147,11 +159,30 @@ contract Voting is Ownable {
         require(msg.value >= VOTING_FEE, "Voting: voting fee isn't enough");
 
         Vote storage vote = votes[voteID];
+
         require(vote.endTime >= uint64(block.timestamp), "Voting: voting time is over");
         require(vote.alreadyVoted[msg.sender] != true, "Voting: you already has voted");
+        require(candidateID < vote.candidates.length,
+                "Voting: candidate with such ID doesn't exists");
 
         vote.alreadyVoted[msg.sender] = true;
         vote.pool += msg.value;
-        ++vote.voteOf[candidate];
+        vote.candidates[candidateID].voteOf++;
+
+        // Current winner is always on the first place in the array of candidates.
+        // So we can to avoid loop when we will choose winner of vote.
+        if (vote.candidates[candidateID].voteOf > vote.candidates[0].voteOf) {
+            Candidate storage newCurrentWinner = vote.candidates[candidateID];
+            vote.candidates[candidateID] = vote.candidates[0]; 
+            vote.candidates[0] = newCurrentWinner; 
+        }
+    }
+
+    function doVoteByAddress(uint voteID, address candidateAddr)
+        external
+        payable
+    {
+        uint candidateID = getCandidateID(voteID, candidateAddr);
+        doVoteByID(voteID, candidateID);
     }
 }
