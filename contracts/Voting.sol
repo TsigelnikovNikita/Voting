@@ -28,9 +28,9 @@ contract Voting is Ownable {
         mapping(address => uint) candidateIndexes;
         string name;
         string description;
-        uint128 pool;
-        uint64 endTime;
-        uint64 currentWinner;
+        uint pool;
+        uint endTime;
+        uint currentWinner;
         bool isEnded;
         address[] participants;
         mapping(address => bool) alreadyVoted;
@@ -160,7 +160,8 @@ contract Voting is Ownable {
         payable
         voteIsExist(voteID)
     {
-        require(msg.value == VOTING_FEE, "Voting: voting fee should be equal to 0.01 ether");
+        require(msg.value == VOTING_FEE,
+                            "Voting: voting fee should be equal to 0.01 ether");
 
         Vote storage vote = votes[voteID];
 
@@ -168,7 +169,8 @@ contract Voting is Ownable {
         require(!vote.alreadyVoted[msg.sender], "Voting: you already has voted");
         uint candidateIndex = vote.candidateIndexes[candidate];
         if (candidateIndex == 0) {
-            require(vote.candidates[0].addr == candidate, "Voting: candidate with such address doesn't exists");
+            require(vote.candidates[0].addr == candidate,
+                        "Voting: candidate with such address doesn't exists");
         }
 
         vote.pool += msg.value;
@@ -177,7 +179,9 @@ contract Voting is Ownable {
         vote.alreadyVoted[msg.sender] = true;
         vote.participants.push(msg.sender);
 
-        if (vote.candidates[candidateIndex].voteOf > vote.candidates[vote.currentWinner].voteOf) {
+        if (vote.candidates[candidateIndex].voteOf >
+            vote.candidates[vote.currentWinner].voteOf)
+        {
             vote.currentWinner = candidateIndex;
         }
     }
