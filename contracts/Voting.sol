@@ -175,12 +175,14 @@ contract Voting is Ownable {
 
         // Current winner is always on the first place in the array of candidates.
         // So we can to avoid loop when we will choose winner of vote.
-        if (vote.candidates[candidateID].addr != vote.candidates[0].addr && 
-            vote.candidates[candidateID].voteOf > vote.candidates[0].voteOf) {
-            Candidate storage newCurrentWinner = vote.candidates[candidateID];
-            vote.candidates[candidateID] = vote.candidates[0]; 
-            vote.candidates[0] = newCurrentWinner; 
-        }
+
+        // TODO: TEMPORARY REMOVED. NEED TO CHECK GAS ESTIMATION
+        // if (vote.candidates[candidateID].addr != vote.candidates[0].addr && 
+        //     vote.candidates[candidateID].voteOf > vote.candidates[0].voteOf) {
+        //     Candidate memory newCurrentWinner = vote.candidates[candidateID];
+        //     vote.candidates[candidateID] = vote.candidates[0]; 
+        //     vote.candidates[0] = newCurrentWinner; 
+        // }
     }
 
     function doVoteByAddress(uint voteID, address candidateAddr)

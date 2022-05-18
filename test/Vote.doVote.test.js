@@ -1,13 +1,13 @@
 const {ethers} = require("hardhat");
 const {expect} = require("chai");
+const { BigNumber } = require("ethers");
 
 require("chai").use(require('chai-as-promised'));
 
 const VOTE_DURATION = 259200; // 3 days
-async function getBlockTimestamp(bn) {
-    return (
-        await ethers.provider.getBlock(bn)
-    ).timestamp;
+
+function getRandInt(min, max) {
+    return Math.floor(Math.random() * (max - min) + min);
 }
 
 describe("Vote.doVote", () => {
@@ -18,7 +18,9 @@ describe("Vote.doVote", () => {
                     "0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
                     "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
                     "0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
-                    "0xcd3B766CCDd6AE721141F452C550Ca635964ce71"];
+                    "0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
+                    "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+                    "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f"];
 
     beforeEach(async () => {
         [votingOwner, participant] = await ethers.getSigners();
@@ -33,26 +35,26 @@ describe("Vote.doVote", () => {
     describe("Vote.doVoteByID", () => {
         it("doVoteByID() should throw an exception if voteID is incorrect", async () => {
             await expect(voting.doVoteByID(1, 1, {value: ethers.utils.parseEther("0.01")}))
-            .to.be.rejectedWith(Error)
-            .then((error) => {
-                expect(error.message).to.contain("Voting: vote with such ID doesn't exists");
-            });
+                .to.be.rejectedWith(Error)
+                .then((error) => {
+                    expect(error.message).to.contain("Voting: vote with such ID doesn't exists");
+                });
         });
 
         it("doVoteByID() should throw an exception if candiateID is incorrect", async () => {
             await expect(voting.doVoteByID(0, 12, {value: ethers.utils.parseEther("0.01")}))
-            .to.be.rejectedWith(Error)
-            .then((error) => {
-                expect(error.message).to.contain("Voting: candidate with such ID doesn't exists");
-            });
+                .to.be.rejectedWith(Error)
+                .then((error) => {
+                    expect(error.message).to.contain("Voting: candidate with such ID doesn't exists");
+                });
         });
 
         it("doVoteByID() should throw an exception if voting fee is not enough", async () => {
             await expect(voting.doVoteByID(0, 1, {value: ethers.utils.parseEther("0.001")}))
-            .to.be.rejectedWith(Error)
-            .then((error) => {
-                expect(error.message).to.contain("Voting: voting fee isn't enough");
-            });
+                .to.be.rejectedWith(Error)
+                .then((error) => {
+                    expect(error.message).to.contain("Voting: voting fee isn't enough");
+                });
         });
 
         it("doVoteByID() should throw an exception if voting time is over", async () => {
@@ -60,20 +62,45 @@ describe("Vote.doVote", () => {
             await network.provider.send("evm_setNextBlockTimestamp", [lastBlockTimestamp + VOTE_DURATION + 1]);
 
             await expect(voting.doVoteByID(0, 1, {value: ethers.utils.parseEther("0.01")}))
-            .to.be.rejectedWith(Error)
-            .then((error) => {
-                expect(error.message).to.contain("Voting: voting time is over");
-            });
+                .to.be.rejectedWith(Error)
+                .then((error) => {
+                    expect(error.message).to.contain("Voting: voting time is over");
+                });
         });
-        
+
         it("doVoteByID() should throw an exception if participant has already voted", async () => {
             await voting.doVoteByID(0, 1, {value: ethers.utils.parseEther("0.01")});
 
             await expect(voting.doVoteByID(0, 1, {value: ethers.utils.parseEther("0.01")}))
-            .to.be.rejectedWith(Error)
-            .then((error) => {
-                expect(error.message).to.contain("Voting: you already has voted");
-            });
+                .to.be.rejectedWith(Error)
+                .then((error) => {
+                    expect(error.message).to.contain("Voting: you already has voted");
+                });
+        });
+
+        it("doVoteByID() should work correctly", async () => {
+            const testCasesAmount = 10
+
+            const participants = (await ethers.getSigners()).slice(5, 5 + testCasesAmount);
+            const votingFee = ethers.utils.parseEther("0.01");
+            let expectedVotingResult = new Array(candidates.length).fill(0);
+
+            for (const participant of participants) {
+                const candiateID = getRandInt(0, candidates.length);
+
+                const tx = await voting.connect(participant).doVoteByID(0, candiateID, {value: votingFee});
+                await expect(tx)
+                    .to.changeEtherBalances([participant, voting], [BigNumber.from(0).sub(votingFee), votingFee]);
+
+                expectedVotingResult[candiateID]++;
+            }
+
+            const vote = await voting.getVote(0);
+
+            expect(vote.pool).to.eq(votingFee.mul(testCasesAmount));
+            for(let i = 0; i < vote.candidates.length; i++) {
+                expect(vote.candidates[i].voteOf).to.eq(expectedVotingResult[i]);
+            }
         });
     });
 
@@ -82,26 +109,26 @@ describe("Vote.doVote", () => {
 
         it("doVoteByAddress() should throw an exception if voteID is incorrect", async () => {
             await expect(voting.doVoteByAddress(1, candidate, {value: ethers.utils.parseEther("0.01")}))
-            .to.be.rejectedWith(Error)
-            .then((error) => {
-                expect(error.message).to.contain("Voting: vote with such ID doesn't exists");
-            });
+                .to.be.rejectedWith(Error)
+                .then((error) => {
+                    expect(error.message).to.contain("Voting: vote with such ID doesn't exists");
+                });
         });
 
         it("doVoteByAddress() should throw an exception if candidateAddr is incorrect", async () => {
             await expect(voting.doVoteByAddress(0, ethers.constants.AddressZero, {value: ethers.utils.parseEther("0.01")}))
-            .to.be.rejectedWith(Error)
-            .then((error) => {
-                expect(error.message).to.contain("Voting: candidate with such address doesn't exists");
-            });
+                .to.be.rejectedWith(Error)
+                .then((error) => {
+                    expect(error.message).to.contain("Voting: candidate with such address doesn't exists");
+                });
         });
 
         it("doVoteByAddress() should throw an exception if voting fee is not enough", async () => {
             await expect(voting.doVoteByAddress(0, candidate, {value: ethers.utils.parseEther("0.001")}))
-            .to.be.rejectedWith(Error)
-            .then((error) => {
-                expect(error.message).to.contain("Voting: voting fee isn't enough");
-            });
+                .to.be.rejectedWith(Error)
+                .then((error) => {
+                    expect(error.message).to.contain("Voting: voting fee isn't enough");
+                });
         });
 
         it("doVoteByAddress() should throw an exception if voting time is over", async () => {
@@ -109,20 +136,20 @@ describe("Vote.doVote", () => {
             await network.provider.send("evm_setNextBlockTimestamp", [lastBlockTimestamp + VOTE_DURATION + 1]);
 
             await expect(voting.doVoteByAddress(0, candidate, {value: ethers.utils.parseEther("0.01")}))
-            .to.be.rejectedWith(Error)
-            .then((error) => {
-                expect(error.message).to.contain("Voting: voting time is over");
-            });
+                .to.be.rejectedWith(Error)
+                .then((error) => {
+                    expect(error.message).to.contain("Voting: voting time is over");
+                });
         });
 
         it("doVoteByAddress() should throw an exception if participant has already voted", async () => {
             await voting.doVoteByAddress(0, candidate, {value: ethers.utils.parseEther("0.01")});
 
             await expect(voting.doVoteByAddress(0, candidate, {value: ethers.utils.parseEther("0.01")}))
-            .to.be.rejectedWith(Error)
-            .then((error) => {
-                expect(error.message).to.contain("Voting: you already has voted");
-            });
+                .to.be.rejectedWith(Error)
+                .then((error) => {
+                    expect(error.message).to.contain("Voting: you already has voted");
+                });
         });
     });
 });
