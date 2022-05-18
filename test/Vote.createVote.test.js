@@ -60,26 +60,30 @@ describe("Vote.createVote", () => {
             });
     });
 
-    it("createVote() should create a vote correctly", async () => {
-        const voteName = "VoteName";
-        const voteDescription = "voteDescription";
+    it("createVote() should create votes correctly", async () => {
+        const votesAmount = 5;
 
-        const tx = await voting.createVote(voteName, voteDescription, candidates);
-        const vote = await voting.getVote(0);
+        for (j = 0; j < votesAmount; j++) {
+            const voteName = "VoteName" + j;
+            const voteDescription = "voteDescription" + j;
 
-        await expect(tx)
-            .to.emit(voting, "VoteIsCreated")
-            .withArgs(0, voteName, await getBlockTimestamp(tx.blockNumber) + VOTE_DURATION);
+            const tx = await voting.createVote(voteName, voteDescription, candidates);
+            const vote = await voting.getVote(j);
 
-        for (i = 0; i < candidates.length; i++) {
-            expect(vote.candidates[i].addr).to.eq(candidates[i]);
-            expect(vote.candidates[i].voteOf).to.eq(0);
+            await expect(tx)
+                .to.emit(voting, "VoteIsCreated")
+                .withArgs(j, voteName, await getBlockTimestamp(tx.blockNumber) + VOTE_DURATION);
+
+            for (i = 0; i < candidates.length; i++) {
+                expect(vote.candidates[i].addr).to.eq(candidates[i]);
+                expect(vote.candidates[i].voteOf).to.eq(0);
+            }
+
+            expect(vote.name).to.eq(voteName);
+            expect(vote.description).to.eq(voteDescription);
+            expect(vote.pool).to.eq(0);
+            expect(vote.endTime).to.eq(await getBlockTimestamp(tx.blockNumber) + VOTE_DURATION);
+            expect(vote.isEnded).to.eq(false);
         }
-
-        expect(vote.name).to.eq(voteName);
-        expect(vote.description).to.eq(voteDescription);
-        expect(vote.pool).to.eq(0);
-        expect(vote.endTime).to.eq(await getBlockTimestamp(tx.blockNumber) + VOTE_DURATION);
-        expect(vote.isEnded).to.eq(false);
     });
 });
