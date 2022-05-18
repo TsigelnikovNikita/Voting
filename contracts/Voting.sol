@@ -25,6 +25,7 @@ contract Voting is Ownable {
 
     struct Vote {
         Candidate[] candidates;
+        mapping(address => uint) indexOfCandidates;
         string name;
         string description;
         uint pool;
@@ -98,9 +99,11 @@ contract Voting is Ownable {
         vote.endTime = block.timestamp + VOTE_DURATION;
 
         for (uint i = 0; i < candidateAddrs.length;) {
+            address candidates = candidateAddrs[i];
             vote.candidates.push(Candidate(
-                candidateAddrs[i], 0
+                candidates, 0
             ));
+            vote.indexOfCandidates[candidates] = i;
             unchecked { ++i; }
         }
 
@@ -141,46 +144,17 @@ contract Voting is Ownable {
     }
 
     /**
-     * @dev Returns id of candidate in the vote with voteID. It may be useful
-     * if you want to call {doVoteByID} function instead of {doVoteByAddress},
-     * because of {doVoteByID} function is more cheaper.
+     * @dev Allows to participant to vote for candidate.
      *
      * Requirements:
      * - vote with `voteID` should be exists;
-     * - candidate with `candadiateAddr` should be exists;
-     */
-    function getCandidateID(uint voteID, address candadiateAddr)
-        public
-        view
-        voteIsExist(voteID)
-        returns(uint)
-    {
-        Vote storage vote = votes[voteID];
-
-        for (uint i = 0; i < vote.candidates.length;) {
-            if (candadiateAddr == vote.candidates[i].addr) {
-                return i;
-            }
-            unchecked { ++i; }
-        }
-        revert("Voting: candidate with such address doesn't exists");
-    }
-
-    /**
-     * @dev Allows to vote for candidate by candidateID. For getting candidateID
-     * by address just call {getCandidateID} function. 
-     *
-     * Requirements:
-     * - vote with `voteID` should be exists;
-     * - candidate with `candidateID` should be exists;
-     * - msg.value must be equal to or greater then {VOTING_FEE};
+     * - candidate with `candidate` address should be exists;
+     * - msg.value must be equal to {VOTING_FEE};
      * - vote should be an active;
      * - participant (msg.sender) can't vote twice;
      *
-     * NOTE: it's strongly recomended use {doVoteByID} function for vote instead
-     * of {doVoteByAddress} bacause it will be more cheaper!
      */
-    function doVoteByID(uint voteID, uint candidateID)
+    function doVote(uint voteID, address candidate)
         public
         payable
         voteIsExist(voteID)
@@ -191,32 +165,15 @@ contract Voting is Ownable {
 
         require(vote.endTime >= block.timestamp, "Voting: voting time is over");
         require(!vote.alreadyVoted[msg.sender], "Voting: you already has voted");
-        require(candidateID < vote.candidates.length,
-                                "Voting: candidate with such ID doesn't exists");
+        uint candidateIndex = vote.indexOfCandidates[candidate];
+        if (candidateIndex == 0) {
+            require(vote.candidates[0].addr == candidate, "Voting: candidate with such address doesn't exists");
+        }
+
+        vote.pool += msg.value;
+        ++vote.candidates[candidateIndex].voteOf;
 
         vote.alreadyVoted[msg.sender] = true;
-        vote.pool += msg.value;
-        ++vote.candidates[candidateID].voteOf;
         vote.participants.push(msg.sender);
-    }
-
-    /**
-     * @dev Allows to vote for candidate by candidateAddress. Actually this function
-     * just call {getCandidateID} and {doVoteByID} then. Be careful! View function isn't free
-     * inside transaction.
-     *
-     * Requirements:
-     * - candidate with `candidateAddr` should be exists;
-     * - please check {doVoteByID} function for more information.
-     *
-     * NOTE: it's strongly recomended use {doVoteByID} function for vote instead
-     * of {doVoteByAddress} bacause it will be more cheaper!
-     */
-    function doVoteByAddress(uint voteID, address candidateAddr)
-        external
-        payable
-    {
-        uint candidateID = getCandidateID(voteID, candidateAddr);
-        doVoteByID(voteID, candidateID);
     }
 }

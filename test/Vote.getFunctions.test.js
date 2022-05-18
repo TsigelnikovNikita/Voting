@@ -30,25 +30,4 @@ describe("Vote.getter functions", () => {
                 });
         });
     });
-
-    describe("Vote.getCandidateID", () => {
-        it("Should throw an exception if vote with such ID doesn't exists", async () => {
-
-            await expect(voting.getCandidateID(1, candidates[0]))
-                .to.be.rejectedWith(Error)
-                .then((error) => {
-                    expect(error.message).to.contain('Voting: vote with such ID doesn\'t exists');
-                });
-        });
-
-        it("Should throw an exception if candidate with such address doesn't exists", async () => {
-            await voting.createVote("VoteName", "voteDescription", candidates);
-
-            await expect(voting.getCandidateID(0, ethers.constants.AddressZero))
-                .to.be.rejectedWith(Error)
-                .then((error) => {
-                    expect(error.message).to.contain('Voting: candidate with such address doesn\'t exists');
-                });
-        });
-    });
 })
