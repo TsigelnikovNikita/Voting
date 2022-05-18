@@ -100,9 +100,8 @@ contract Voting is Ownable {
 
         for (uint i = 0; i < candidateAddrs.length;) {
             address candidates = candidateAddrs[i];
-            vote.candidates.push(Candidate(
-                candidates, 0
-            ));
+
+            vote.candidates.push(Candidate(candidates, 0));
             vote.indexOfCandidates[candidates] = i;
             unchecked { ++i; }
         }
@@ -114,6 +113,7 @@ contract Voting is Ownable {
      * @dev Returns information about the vote by voteID.
      * The function returns:
      *  - list of candidates
+     *  - list of participants
      *  - name of vote
      *  - description of vote
      *  - current pool of vote
