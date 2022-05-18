@@ -61,8 +61,10 @@ contract Voting is Ownable {
      * - `voteName` and `voteDescription` can't be an empty
      * - `candidateAddres` size must beat least 2. 
      *
-     * IMPORTANT: the function doesn't check uniqueness of the voteName. It allows
-     * to create two votes with the same voteName. Keep this in mind. 
+     * IMPORTANT: the function doesn't check uniqueness of the voteName and
+     * candidate addresses. It allows to create two votes with the same voteName.
+     * Also you must not to send the equal candidate addresses in one vote!
+     * Keep it in mind. 
      *
      * Emit an {VoteIsCreated} event.
      */
@@ -87,10 +89,11 @@ contract Voting is Ownable {
         vote.description = voteDescription;
         vote.endTime = uint64(block.timestamp + VOTE_DURATION);
 
-        for (uint i = 0; i < candidateAddrs.length; i++) {
+        for (uint i = 0; i < candidateAddrs.length;) {
             vote.candidates.push(Candidate(
                 candidateAddrs[i], 0
             ));
+            unchecked { ++i; }
         }
 
         emit VoteIsCreated(votes.length - 1, voteName, vote.endTime);
@@ -136,10 +139,11 @@ contract Voting is Ownable {
     {
         Vote storage vote = votes[voteID];
 
-        for (uint i = 0; i < vote.candidates.length; i++) {
+        for (uint i = 0; i < vote.candidates.length;) {
             if (candadiateAddr == vote.candidates[i].addr) {
                 return i;
             }
+            unchecked { ++i; }
         }
         revert("Voting: candidate with such address doesn't exists");
     }
@@ -167,11 +171,12 @@ contract Voting is Ownable {
 
         vote.alreadyVoted[msg.sender] = true;
         vote.pool += msg.value;
-        vote.candidates[candidateID].voteOf++;
+        ++vote.candidates[candidateID].voteOf;
 
         // Current winner is always on the first place in the array of candidates.
         // So we can to avoid loop when we will choose winner of vote.
-        if (vote.candidates[candidateID].voteOf > vote.candidates[0].voteOf) {
+        if (vote.candidates[candidateID].addr != vote.candidates[0].addr && 
+            vote.candidates[candidateID].voteOf > vote.candidates[0].voteOf) {
             Candidate storage newCurrentWinner = vote.candidates[candidateID];
             vote.candidates[candidateID] = vote.candidates[0]; 
             vote.candidates[0] = newCurrentWinner; 
