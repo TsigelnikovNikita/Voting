@@ -3,6 +3,13 @@ const {expect} = require("chai");
 
 require("chai").use(require('chai-as-promised'));
 
+const VOTE_DURATION = 259200; // 3 days
+async function getBlockTimestamp(bn) {
+    return (
+        await ethers.provider.getBlock(bn)
+    ).timestamp;
+}
+
 describe("Vote.createVote", () => {
     let votingOwner;
     let voting;
@@ -37,6 +44,22 @@ describe("Vote.createVote", () => {
             });
     });
 
+    it("createVote() should throw an exception if voteName is empty", async () => {
+        await expect(voting.connect(votingOwner).createVote("", "voteDescription", [ethers.constants.AddressZero, ethers.constants.AddressZero]))
+            .to.be.rejectedWith(Error)
+            .then((error) => {
+                expect(error.message).to.contain('Voting: voteName can\'t be an empty');
+            });
+    });
+
+    it("createVote() should throw an exception if voteDescription is empty", async () => {
+        await expect(voting.connect(votingOwner).createVote("VoteName", "", [ethers.constants.AddressZero, ethers.constants.AddressZero]))
+            .to.be.rejectedWith(Error)
+            .then((error) => {
+                expect(error.message).to.contain('Voting: voteDescription can\'t be an empty');
+            });
+    });
+
     it("createVote() should create a vote correctly", async () => {
         const voteName = "VoteName";
         const voteDescription = "voteDescription";
@@ -44,6 +67,16 @@ describe("Vote.createVote", () => {
         const tx = await voting.createVote(voteName, voteDescription, candidates);
 
         const vote = await voting.getVote(0);
+
+        for (i = 0; i < candidates.length; i++) {
+            expect(vote.candidates[i].addr).to.eq(candidates[i]);
+            expect(vote.candidates[i].voteOf).to.eq(0);
+        }
+
         expect(vote.name).to.eq(voteName);
+        expect(vote.description).to.eq(voteDescription);
+        expect(vote.pool).to.eq(0);
+        expect(vote.endTime).to.eq(await getBlockTimestamp(tx.blockNumber) + VOTE_DURATION);
+        expect(vote.isEnded).to.eq(false);
     });
 });
