@@ -75,7 +75,18 @@ describe("Vote.endVote", () => {
             .withArgs(0, candidates[0], votingFee.mul(90).div(100));
     });
 
-    it("Should transfer 90% of the winning to the winner and saves 10% of the winning", async () => {
+    it("Should saves 10% of the winning on the voting smart-contract", async () => {
+        await voting.connect(participant).doVote(0, candidates[0], {value: votingFee});
+
+        const lastBlockTimestamp = (await ethers.provider.getBlock("latest")).timestamp;
+        await network.provider.send("evm_setNextBlockTimestamp", [lastBlockTimestamp + VOTE_DURATION + 1]);
+
+        await voting.endVote(0);
+
+        expect(await voting.availableEtherForWithdraw()).to.eq(votingFee.div(10));
+    });
+
+    it("Should transfer 90% of the winning to the winner", async () => {
         const candidateSigner = await ethers.getSigner(candidates[0]);
         const expectedWinning = votingFee.mul(90).div(100);
         await voting.connect(participant).doVote(0, candidates[0], {value: votingFee});

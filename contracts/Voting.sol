@@ -16,7 +16,7 @@ contract Voting is Ownable {
 
     // Amount of available ether that owner can withdraw.
     // Owner gets fee from vote only at the end of vote.
-    uint availableEtherForWithdraw;
+    uint public availableEtherForWithdraw;
 
     struct Candidate {
         address addr;
@@ -205,11 +205,12 @@ contract Voting is Ownable {
 
         vote.isEnded = true;
 
+        // 10% of the winning stays on the smart-contract
+        uint voteFee = vote.pool / FEE;
         // The winner gets 90% of vote pool.
-        uint winning = vote.pool * 90 / 100;
+        uint winning = vote.pool - voteFee;
 
-        // 10% stays on the smart-contract.
-        availableEtherForWithdraw += vote.pool - winning;
+        availableEtherForWithdraw += voteFee;
 
         payable(vote.candidates[vote.currentWinner].addr).transfer(winning);
 
