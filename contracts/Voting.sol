@@ -92,7 +92,7 @@ contract Voting is Ownable {
         external
         onlyOwner
     {
-        require(candidateAddrs.length >= 2,
+        require(candidateAddrs.length > 1,
                 "Voting: amount of candidates must be at least 2");
         require(bytes(voteName).length > 0,
                 "Voting: voteName can't be an empty");
@@ -105,6 +105,8 @@ contract Voting is Ownable {
 
         for (uint i = 0; i < candidateAddrs.length;) {
             address candidates = candidateAddrs[i];
+            require(vote.candidateIndexes[candidates] == 0,
+                        "Voting: candidate address must be an unique");
 
             vote.candidates.push(Candidate(candidates, 0));
             vote.candidateIndexes[candidates] = i;
@@ -221,6 +223,7 @@ contract Voting is Ownable {
         amount = amount == 0 ? availableEtherForWithdraw : amount;
         require(amount <= availableEtherForWithdraw,
                 "Voting: you don't have such amount of available fee for withdraw");
+
         availableEtherForWithdraw -= amount;
         payable(msg.sender).transfer(amount);
     }

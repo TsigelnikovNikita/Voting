@@ -29,7 +29,7 @@ describe("Vote.createVote", () => {
     });
 
     it("Should throw an exception if not owner is trying to create a vote", async () => {
-        await expect(voting.connect(participant).createVote("VoteName", "voteDescription", [ethers.constants.AddressZero]))
+        await expect(voting.connect(participant).createVote("VoteName", "voteDescription", candidates))
             .to.be.rejectedWith(Error)
             .then((error) => {
                 expect(error.message).to.contain('Ownable: caller is not the owner');
@@ -45,14 +45,21 @@ describe("Vote.createVote", () => {
     });
 
     it("Should throw an exception if voteName is empty", async () => {
+        await expect(voting.connect(votingOwner).createVote("", "voteDescription", candidates))
+            .to.be.rejectedWith(Error)
+            .then((error) => {
+                expect(error.message).to.contain("Voting: voteName can't be an empty");
+            });
+    });
+    
+    it("Should throw an exception if candidate addresses is not an unique", async () => {
         await expect(voting.connect(votingOwner).createVote("", "voteDescription", [ethers.constants.AddressZero, ethers.constants.AddressZero]))
             .to.be.rejectedWith(Error)
             .then((error) => {
-                expect(error.message).to.contain('Voting: voteName can\'t be an empty');
+                expect(error.message).to.contain("Voting: voteName can't be an empty");
             });
     });
 
-    
     it("Should emit the VoteIsCreated event", async () => {
         const voteName = "VoteName";
         const voteDescription = "voteDescription";
@@ -64,11 +71,10 @@ describe("Vote.createVote", () => {
             .withArgs(0, voteName, await getBlockTimestamp(tx.blockNumber) + VOTE_DURATION);
     });
 
-
     it("Should create votes correctly", async () => {
         const votesAmount = 5;
 
-        for (j = 0; j < votesAmount; j++) {
+        for (let j = 0; j < votesAmount; j++) {
             const voteName = "VoteName" + j;
             const voteDescription = "voteDescription" + j;
 
@@ -76,7 +82,7 @@ describe("Vote.createVote", () => {
 
             const vote = await voting.getVote(j);
 
-            for (i = 0; i < candidates.length; i++) {
+            for (let i = 0; i < candidates.length; i++) {
                 expect(vote.candidates[i].addr).to.eq(candidates[i]);
                 expect(vote.candidates[i].voteOf).to.eq(0);
             }
