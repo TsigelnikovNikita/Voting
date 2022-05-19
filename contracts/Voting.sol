@@ -135,18 +135,19 @@ contract Voting is Ownable {
         view
         voteIsExist(voteID)
         returns(
-            Candidate[] memory candidates,
-            address[] memory participants,
             string memory name,
             string memory description,
+            Candidate[] memory candidates,
+            Candidate memory currentWinner,
+            address[] memory participants,
             uint pool,
             uint endTime,
             bool isEnded)
     {    
         Vote storage vote = votes[voteID];
 
-        return (vote.candidates, vote.participants, vote.name,
-                vote.description, vote.pool, vote.endTime, vote.isEnded);
+        return (vote.name, vote.description, vote.candidates, vote.candidates[vote.currentWinner],
+                vote.participants, vote.pool, vote.endTime, vote.isEnded);
     }
 
     /**
