@@ -52,6 +52,19 @@ describe("Vote.createVote", () => {
             });
     });
 
+    
+    it("Should emit the VoteIsCreated event", async () => {
+        const voteName = "VoteName";
+        const voteDescription = "voteDescription";
+
+        const tx = await voting.createVote(voteName, voteDescription, candidates);
+
+        await expect(tx)
+            .to.emit(voting, "VoteIsCreated")
+            .withArgs(0, voteName, await getBlockTimestamp(tx.blockNumber) + VOTE_DURATION);
+    });
+
+
     it("Should create votes correctly", async () => {
         const votesAmount = 5;
 
@@ -59,12 +72,9 @@ describe("Vote.createVote", () => {
             const voteName = "VoteName" + j;
             const voteDescription = "voteDescription" + j;
 
-            const tx = await voting.createVote(voteName, voteDescription, candidates);
-            const vote = await voting.getVote(j);
+            await voting.createVote(voteName, voteDescription, candidates);
 
-            await expect(tx)
-                .to.emit(voting, "VoteIsCreated")
-                .withArgs(j, voteName, await getBlockTimestamp(tx.blockNumber) + VOTE_DURATION);
+            const vote = await voting.getVote(j);
 
             for (i = 0; i < candidates.length; i++) {
                 expect(vote.candidates[i].addr).to.eq(candidates[i]);
