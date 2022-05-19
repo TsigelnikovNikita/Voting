@@ -84,8 +84,14 @@ describe("Vote.doVote", () => {
             });
     });
 
+    it("Should transfer voting fee from participant to Voting smart-contract", async () => {
+        const tx = await voting.connect(participant).doVote(0, candidates[0], {value: votingFee});
+        await expect(tx)
+            .to.changeEtherBalances([participant, voting], [votingFee.mul(-1), votingFee]);
+    });
+
     it("Should work correctly", async () => {
-        const testCasesAmount = 10
+        const testCasesAmount = 10;
 
         // we need list of participants because we aren't able to vote from one address twice
         const participants = (await ethers.getSigners()).slice(5, 5 + testCasesAmount);
@@ -93,11 +99,7 @@ describe("Vote.doVote", () => {
 
         for (const participant of participants) {
             const candiateID = getRandInt(0, candidates.length);
-
-            const tx = await voting.connect(participant).doVote(0, candidates[candiateID], {value: votingFee});
-            await expect(tx)
-                .to.changeEtherBalances([participant, voting], [votingFee.mul(-1), votingFee]);
-
+            await voting.connect(participant).doVote(0, candidates[candiateID], {value: votingFee});
             expectedVotingResult[candiateID]++;
         }
 

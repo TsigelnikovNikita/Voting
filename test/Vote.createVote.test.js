@@ -72,7 +72,7 @@ describe("Vote.createVote", () => {
             const voteName = "VoteName" + j;
             const voteDescription = "voteDescription" + j;
 
-            await voting.createVote(voteName, voteDescription, candidates);
+            const tx = await voting.createVote(voteName, voteDescription, candidates);
 
             const vote = await voting.getVote(j);
 
