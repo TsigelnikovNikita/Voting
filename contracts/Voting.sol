@@ -222,7 +222,7 @@ contract Voting is Ownable {
         onlyOwner
     {
         amount = amount == 0 ? availableEtherForWithdraw : amount;
-        require(amount <= availableEtherForWithdraw,
+        require(availableEtherForWithdraw > 0 && amount <= availableEtherForWithdraw,
                 "Voting: you don't have such amount of available fee for withdraw");
 
         availableEtherForWithdraw -= amount;

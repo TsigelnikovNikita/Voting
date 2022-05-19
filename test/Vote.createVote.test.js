@@ -32,7 +32,7 @@ describe("Vote.createVote", () => {
         await expect(voting.connect(participant).createVote("VoteName", "voteDescription", candidates))
             .to.be.rejectedWith(Error)
             .then((error) => {
-                expect(error.message).to.contain('Ownable: caller is not the owner');
+                expect(error.message).to.contain("Ownable: caller is not the owner");
             });
     });
 
@@ -53,10 +53,10 @@ describe("Vote.createVote", () => {
     });
     
     it("Should throw an exception if candidate addresses is not an unique", async () => {
-        await expect(voting.connect(votingOwner).createVote("", "voteDescription", [ethers.constants.AddressZero, ethers.constants.AddressZero]))
+        await expect(voting.connect(votingOwner).createVote("voteName", "voteDescription", [ethers.constants.AddressZero, ethers.constants.AddressZero]))
             .to.be.rejectedWith(Error)
             .then((error) => {
-                expect(error.message).to.contain("Voting: voteName can't be an empty");
+                expect(error.message).to.contain("Voting: candidate address must be an unique");
             });
     });
 
