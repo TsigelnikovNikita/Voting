@@ -52,14 +52,6 @@ describe("Vote.createVote", () => {
             });
     });
 
-    it("Should throw an exception if voteDescription is empty", async () => {
-        await expect(voting.connect(votingOwner).createVote("VoteName", "", [ethers.constants.AddressZero, ethers.constants.AddressZero]))
-            .to.be.rejectedWith(Error)
-            .then((error) => {
-                expect(error.message).to.contain('Voting: voteDescription can\'t be an empty');
-            });
-    });
-
     it("Should create votes correctly", async () => {
         const votesAmount = 5;
 

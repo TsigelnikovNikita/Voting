@@ -73,9 +73,10 @@ contract Voting is Ownable {
      * vote is equal to the current timestamp plus three days. 
      *
      * Requirements:
-     * - `voteName` and `voteDescription` can't be an empty;
+     * - `voteName` can't be an empty;
      * - `candidateAddres` size must beat least 2;
      *
+     * NOTE: `voteDescription` can be an empty if it unnecessary for you
      * IMPORTANT: the function doesn't check uniqueness of the voteName and
      * candidate addresses. It allows to create two votes with the same voteName.
      * Also you must not to send the equal candidate addresses in one vote!
@@ -95,8 +96,6 @@ contract Voting is Ownable {
                 "Voting: amount of candidates must be at least 2");
         require(bytes(voteName).length > 0,
                 "Voting: voteName can't be an empty");
-        require(bytes(voteDescription).length > 0,
-                "Voting: voteDescription can't be an empty");
 
         Vote storage vote = votes.push();
 

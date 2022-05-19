@@ -70,7 +70,6 @@ describe("Vote.endVote", () => {
         const lastBlockTimestamp = (await ethers.provider.getBlock("latest")).timestamp;
         await network.provider.send("evm_setNextBlockTimestamp", [lastBlockTimestamp + VOTE_DURATION + 1]);
 
-
         await expect(voting.endVote(0))
             .emit(voting, "VoteIsEnded")
             .withArgs(0, candidates[0], votingFee.mul(90).div(100));
