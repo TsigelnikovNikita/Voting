@@ -12,14 +12,14 @@ function candidatesToString(candidates) {
 }
 
 function participantToString(participants) {
-    let result ="";
+    let result = "";
 
     for (const participant of participants) {
         result +=
             "\taddress: " + participant.addr +
-            "\n\tvote for: " + participant.voteFor;
+            "\n\tvote for: " + participant.voteFor + "\n";
     }
-    return result;
+    return result.slice(0, -1);
 }
 
 task("getVote", "Allow to get info about vote")
