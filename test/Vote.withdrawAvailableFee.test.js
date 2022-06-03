@@ -51,4 +51,19 @@ describe("Vote.withdrawAvailableFee", () => {
                 expect(error.message).to.contain("Ownable: caller is not the owner");
             });
     });
+
+    it("Should correctly transfer requested available fee", async () => {
+        await participant.sendTransaction({to: voting.address, value: votingFee});
+
+        const amount = votingFee.div(2);
+        await expect(await voting.connect(votingOwner).withdrawAvailableFee(amount))
+            .to.changeEtherBalances([voting, votingOwner], [amount.mul(-1), amount]);
+    });
+
+    it("Should correctly transfer all available fee if requested available fee is zero", async () => {
+        await participant.sendTransaction({to: voting.address, value: votingFee});
+
+        await expect(await voting.connect(votingOwner).withdrawAvailableFee(0))
+            .to.changeEtherBalances([voting, votingOwner], [votingFee.mul(-1), votingFee]);
+    });
 });
