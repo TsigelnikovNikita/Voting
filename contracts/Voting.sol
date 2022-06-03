@@ -104,12 +104,14 @@ contract Voting is Ownable {
         vote.endTime = block.timestamp + VOTE_DURATION;
 
         for (uint i = 0; i < candidateAddrs.length;) {
-            address candidates = candidateAddrs[i];
-            require(vote.candidateIndexes[candidates] == 0,
-                        "Voting: candidate address must be an unique");
+            address candidate = candidateAddrs[i];
+            if (i > 0) {
+                require(vote.candidates[0].addr != candidate && vote.candidateIndexes[candidate] == 0,
+                            "Voting: candidate address must be an unique");
+            }
 
-            vote.candidates.push(Candidate(candidates, 0));
-            vote.candidateIndexes[candidates] = i;
+            vote.candidates.push(Candidate(candidate, 0));
+            vote.candidateIndexes[candidate] = i;
             unchecked { ++i; }
         }
 
