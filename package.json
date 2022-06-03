@@ -13,6 +13,7 @@
     "chai-as-promised": "^7.1.1",
     "hardhat-dependency-compiler": "^1.1.2",
     "hardhat-gas-reporter": "^1.0.8",
+    "hardhat-storage-layout": "^0.1.6",
     "solidity-coverage": "^0.7.21"
   }
 }

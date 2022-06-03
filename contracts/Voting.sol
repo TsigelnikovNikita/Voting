@@ -106,7 +106,8 @@ contract Voting is Ownable {
         for (uint i = 0; i < candidateAddrs.length;) {
             address candidate = candidateAddrs[i];
             if (i > 0) {
-                require(vote.candidates[0].addr != candidate && vote.candidateIndexes[candidate] == 0,
+                require(vote.candidates[0].addr != candidate &&
+                        vote.candidateIndexes[candidate] == 0,
                             "Voting: candidate address must be an unique");
             }
 

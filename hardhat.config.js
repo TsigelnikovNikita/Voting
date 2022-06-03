@@ -2,6 +2,7 @@ require("@nomiclabs/hardhat-waffle");
 require('hardhat-dependency-compiler');
 require("hardhat-gas-reporter");
 require('solidity-coverage');
+require('hardhat-storage-layout');
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -14,7 +15,12 @@ module.exports = {
         enabled: true,
         runs: 200,
       },
-    }
+      outputSelection: {
+        "*": {
+          "*": ["storageLayout"],
+        },
+      },
+    },
   },
   dependencyCompiler: {
     paths: [
