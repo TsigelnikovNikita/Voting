@@ -131,8 +131,7 @@ contract Voting is Ownable {
      *  - status of vote (is ended or not)
      *
      * Requirements:
-     * - vote with `voteID` should be exists;
-     *
+     * - vote with `voteID` must be exists;
      */
     function getVote(uint voteID)
         external
@@ -158,12 +157,11 @@ contract Voting is Ownable {
      * @dev Allows to participant to vote for candidate.
      *
      * Requirements:
-     * - vote with `voteID` should be exists;
-     * - candidate with `candidate` address should be exists;
+     * - vote with `voteID` must be exists;
+     * - candidate with `candidate` address must be exists;
      * - msg.value must be equal to {VOTING_FEE};
-     * - vote should be an active;
+     * - vote must be an active;
      * - participant (msg.sender) can't vote twice;
-     *
      */
     function doVote(uint voteID, address candidate)
         external
@@ -171,7 +169,7 @@ contract Voting is Ownable {
         voteIsExist(voteID)
     {
         require(msg.value == VOTING_FEE,
-                            "Voting: voting fee should be equal to 0.01 ether");
+                            "Voting: voting fee must be equal to 0.01 ether");
 
         Vote storage vote = votes[voteID];
 
@@ -196,6 +194,18 @@ contract Voting is Ownable {
         }
     }
 
+
+    /**
+     * @dev Allows to end the vote with voteID. The Function automatically
+     * transfer 90% of the winning to the winner.
+     *
+     * Requirements:
+     * - vote with `voteID` must be exists;
+     * - vote must not be already ended;
+     * - vote must not be in processing (end time of the vote must be reached);
+     *
+     * Emit {VoteIsEnded} event. 
+     */
     function endVote(uint voteID)
         external
         voteIsExist(voteID)
