@@ -76,7 +76,7 @@ contract Voting is Ownable {
      * - `voteName` can't be an empty;
      * - `candidateAddres` size must beat least 2;
      *
-     * NOTE: `voteDescription` can be an empty if it unnecessary for you
+     * Note: `voteDescription` can be an empty if it unnecessary for you
      * IMPORTANT: the function doesn't check uniqueness of the voteName and
      * candidate addresses. It allows to create two votes with the same voteName.
      * Also you must not to send the equal candidate addresses in one vote!
@@ -230,6 +230,16 @@ contract Voting is Ownable {
         emit VoteIsEnded(voteID, vote.candidates[vote.currentWinner].addr, winning);
     }
 
+    /**
+     * @dev Allows to withdraw available fee from the contract. Function must be
+     * called only by owner of smart contract.
+     *
+     * Requirements:
+     * - `amount` must be lower than or equal to the {availableEtherForWithdraw};
+     *
+     * Note: `amount` maybe be equal to zero. In such case function will be withdraw
+     * all avaialable fee;
+     */
     function withdrawAvailableFee(uint amount)
         external
         onlyOwner
