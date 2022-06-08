@@ -28,9 +28,21 @@ module.exports = {
       },
     },
   },
+  networks: {
+    rinkeby: {
+      url: `${process.env.RINKEBY_NETWORK_URI}`,
+      accounts: [`${process.env.SIGNER_PRIVATE_KEY}`]
+    },
+  },
   dependencyCompiler: {
     paths: [
       '@openzeppelin/contracts/access/Ownable.sol',
     ],
   }
 };
+
+// for case when user didn't define SIGNER_PRIVATE_KEY and RINKEBY_NETWORK_URI variables  
+if (process.env.SIGNER_PRIVATE_KEY == undefined ||
+    process.env.RINKEBY_NETWORK_URI == undefined) {
+  delete module.exports.networks.rinkeby
+}
