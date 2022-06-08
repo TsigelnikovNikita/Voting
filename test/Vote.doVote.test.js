@@ -53,13 +53,13 @@ describe("Vote.doVote", () => {
         await expect(voting.doVote(0, candidates[0], {value: ethers.utils.parseEther("0.001")}))
             .to.be.rejectedWith(Error)
             .then((error) => {
-                expect(error.message).to.contain("Voting: voting fee should be equal to 0.01 ether");
+                expect(error.message).to.contain("Voting: voting fee must be equal to 0.01 ether");
             });
 
         await expect(voting.doVote(0, candidates[0], {value: ethers.utils.parseEther("0.11")}))
             .to.be.rejectedWith(Error)
             .then((error) => {
-                expect(error.message).to.contain("Voting: voting fee should be equal to 0.01 ether");
+                expect(error.message).to.contain("Voting: voting fee must be equal to 0.01 ether");
             });
     });
 
